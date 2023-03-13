@@ -1,33 +1,28 @@
 import React, { useState } from 'react';
-import {Text, View, TextInput, Button, TouchableOpacity, Pressable} from 'react-native';
+import {Text, View, TextInput, Button, TouchableOpacity, Pressable, Image} from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Image } from 'react-native';
-
 
 const Stack = createNativeStackNavigator();
 
-function LoginScreen({ setLoggedIn, setUser }) {
+function LoginScreen({ setUser, setLoggedIn }) {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
 
     const handleLogin = async () => {
         try {
-            const response = await fetch('https://dummyapi.io/data/v1/user/login', {
-                method: 'POST',
-                headers: {
-                    'app-id': '640f26eaf0cac744c8e43ece', // replace with your own app id
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ username, password }),
-            });
+            const response = await fetch('https://dummyjson.com/users');
             if (response.ok) {
                 const data = await response.json();
-                const { id, firstName, lastName, email, picture } = data;
-                setUser({ id, firstName, lastName, email, picture });
-                setLoggedIn(true);
+                const user = data[Math.floor(Math.random() * data.length)];
+                if (user.username === username && user.password === password) {
+                    setUser(user);
+                    setLoggedIn(true);
+                } else {
+                    throw new Error('Invalid username or password');
+                }
             } else {
-                throw new Error('Invalid username or password');
+                throw new Error('Failed to fetch user data');
             }
         } catch (error) {
             console.error(error);
@@ -66,7 +61,7 @@ function DashboardScreen({ user }) {
                 }}
             >
                 <Image
-                    source={user.image}
+                    source={{ uri: user.image }}
                     style={{ width: 50, height: 50, borderRadius: 25 }}
                 />
                 <Text style={{ marginLeft: 10, fontSize: 20 }}>
@@ -182,31 +177,36 @@ export default function App() {
         setLoggedIn(false);
     };
 
-    const handleLoginSuccess = async () => {
+    const handleLoginSuccess = async (response) => {
         try {
-            // get a list of users from the API
-            const response = await fetch('https://dummyapi.io/data/v1/user', {
-                headers: { 'app-id': '640f26eaf0cac744c8e43ece' },
-            });
-            const { data: users } = await response.json();
+            const userResponse = await fetch('https://dummyjson.com/users');
+            const userList = await userResponse.json();
+            const { username } = response;
 
-            // generate a random user index
-            const randomIndex = Math.floor(Math.random() * users.length);
+            // Find the user with the matching username
+            const matchedUser = userList.find((user) => user.username === username);
 
-            // get the random user's details from the API
-            const randomUser = users[randomIndex];
-            const userId = randomUser.id;
+            // Extract necessary user details
+            const user = {
+                id: matchedUser.id,
+                firstName: matchedUser.name.firstName,
+                lastName: matchedUser.name.lastName,
+                email: matchedUser.email,
+                image: matchedUser.image,
+                age: matchedUser.age,
+                gender: matchedUser.gender,
+                phone: matchedUser.phone,
+                birthDate: matchedUser.birthDate,
+                bloodGroup: matchedUser.bloodGroup,
+                height: matchedUser.height,
+                weight: matchedUser.weight,
+                eyeColor: matchedUser.eyeColor,
+            };
 
-            const userResponse = await fetch(`https://dummyapi.io/data/v1/user/${userId}`, {
-                headers: { 'app-id': '640f26eaf0cac744c8e43ece' },
-            });
-            const { data: userDetails } = await userResponse.json();
-
-            // set the user details in state and mark the user as logged in
-            setUser(userDetails);
+            setUser(user);
             setLoggedIn(true);
         } catch (error) {
-            console.error('Error logging in:', error);
+            console.error(error);
         }
     };
 
