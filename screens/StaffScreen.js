@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import {View, Text, TextInput, Button, FlatList, StyleSheet, TouchableOpacity} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import styled from 'styled-components/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
+import UpdateStaff from './updateStaff'
+
+
+
 
 const BASE_URL = 'https://crudcrud.com/api/3e7828237b5d4c5b8fd6c4db3bca113a';
 
 export default function StaffScreen() {
-    const navigation = useNavigation();
     const [staffList, setStaffList] = useState([]);
+    const navigation = useNavigation();
     const [staffNumber, setStaffNumber] = useState('');
     const [staffName, setStaffName] = useState('');
     const [staffEmail, setStaffEmail] = useState('');
@@ -45,6 +48,11 @@ export default function StaffScreen() {
             });
             const data = await response.json();
             setStaffList([...staffList, data]);
+            setStaffNumber('');
+            setStaffName('');
+            setStaffEmail('');
+            setDepartment('');
+            setSalary('');
         } catch (error) {
             console.error(error);
         }
@@ -53,6 +61,27 @@ export default function StaffScreen() {
     function handleGoToEmailScreen() {
         navigation.navigate('Email');
     }
+    async function handleUpdateStaff(id) {
+        const updatedStaff = staffList.find((s) => s._id === id);
+        navigation.navigate("UpdateStaff", {
+            id: updatedStaff._id,
+            handleUpdate: (data) => {
+                setStaffList((prevList) =>
+                    prevList.map((s) => (s._id === data._id ? data : s))
+                );
+            },
+        });
+    }
+
+
+    const handleDeleteStaff = (id) => {
+        // Filter out the staff member with the specified ID
+        const updatedStaffList = staffList.filter((staff) => staff._id !== id);
+
+        // Update the state with the new staff list
+        setStaffList(updatedStaffList);
+    };
+
     return (
         <View>
             <View style={styles.formContainer}>
@@ -107,10 +136,12 @@ export default function StaffScreen() {
             </View>
 
             {/*<Button title="Go to Email Screen" onPress={handleGoToEmailScreen} />*/}
-            <Text style={{textAlign:"center"}}>Staff List</Text>
+            <Text style={{ textAlign: "center", fontSize: 18, marginTop: 10 }}>
+                Staff List
+            </Text>
             <FlatList
                 data={staffList}
-                keyExtractor={(item) => item._id}
+                keyExtractor={(item) => item?._id}
                 ListHeaderComponent={() => (
                     <View style={styles.tableHeader}>
                         <Text style={styles.columnHeader}>Staff Number</Text>
@@ -122,17 +153,20 @@ export default function StaffScreen() {
                 )}
                 renderItem={({ item }) => (
                     <View style={styles.tableRow}>
-                        <Text style={styles.tableColumn}>{item.staffNumber}</Text>
-                        <Text style={styles.tableColumn}>{item.staffName}</Text>
-                        <Text style={styles.tableColumn}>{item.staffEmail}</Text>
-                        <Text style={styles.tableColumn}>{item.department}</Text>
-                        <Text style={styles.tableColumn}>{item.salary}</Text>
+                        <Text style={styles.tableColumn}>{item?.staffNumber}</Text>
+                        <Text style={styles.tableColumn}>{item?.staffName}</Text>
+                        <Text style={styles.tableColumn}>{item?.staffEmail}</Text>
+                        <Text style={styles.tableColumn}>{item?.department}</Text>
+                        <Text style={styles.tableColumn}>{item?.salary}</Text>
+                        <Button title="Update" onPress={() => handleUpdateStaff(item?._id)} />
+
                     </View>
                 )}
             />
 
         </View>
     );
+
 }
 
 const styles = StyleSheet.create({

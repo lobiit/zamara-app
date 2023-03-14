@@ -6,6 +6,7 @@ import StaffScreen from './screens/StaffScreen';
 import LoginScreen from "./screens/LoginScreen";
 import DashboardScreen from "./screens/DashboardScreen";
 import Menu from './components/menu'
+import UpdateStaff from "./screens/updateStaff";
 const Stack = createNativeStackNavigator();
 
 
@@ -66,6 +67,15 @@ export default function App() {
                         >
                             {() => <StaffScreen handleNavigation={handleNavigation} />}
                         </Stack.Screen>
+
+                        <Stack.Screen
+                            name="UpdateStaff"
+                            options={{ title: 'UpdateStaff' }}
+                            component={UpdateStaff}
+                            initialParams={{ id: '', handleNavigation: () => {} }}
+                        />
+
+
                         <Stack.Screen
                             name="Continents"
                             component={ContinentsScreen}
