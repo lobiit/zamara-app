@@ -1,4 +1,4 @@
-import React, { useState,useRef } from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import {Text, View, TextInput, Button, TouchableOpacity, Pressable, Image} from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -7,19 +7,8 @@ import LoginScreen from "./screens/LoginScreen";
 import DashboardScreen from "./screens/DashboardScreen";
 import Menu from './components/menu'
 import UpdateStaff from "./screens/updateStaff";
+import ContinentsScreen from "./screens/ContinentsScreen";
 const Stack = createNativeStackNavigator();
-
-
-
-
-function ContinentsScreen() {
-    return (
-        <View>
-            <Text>Continents Screen</Text>
-        </View>
-    );
-}
-
 function EmailScreen() {
     return (
         <View>
@@ -96,5 +85,6 @@ export default function App() {
         </NavigationContainer>
     );
 }
+
 
 

@@ -1,58 +1,68 @@
-import React from 'react';
-import { StyleSheet, View, Text, Image, FlatList } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Text, View, StyleSheet, ScrollView } from 'react-native';
+import { parseString } from 'react-native-xml2js';
 
-const continents = [
-    // {
-    //     id: '1',
-    //     name: 'Africa',
-    //     image: require('./assets/africa.jpg'),
-    // },
-    // {
-    //     id: '2',
-    //     name: 'Asia',
-    //     image: require('./assets/asia.jpg'),
-    // },
-    // {
-    //     id: '3',
-    //     name: 'Europe',
-    //     image: require('./assets/europe.jpg'),
-    // },
-    // {
-    //     id: '4',
-    //     name: 'North America',
-    //     image: require('./assets/north-america.jpg'),
-    // },
-    // {
-    //     id: '5',
-    //     name: 'South America',
-    //     image: require('./assets/south-america.jpg'),
-    // },
-];
+const WSDL_URL = 'http://www.oorsprong.org/websamples.countryinfo/countryinfoservice.wso/ListOfContinentsByName';
+const PROXY_URL = 'http://localhost:8082/';
 
-export default function ContinentScreen() {
-    const renderItem = ({ item }) => (
-        <View style={styles.card}>
-            <Image source={item.image} style={styles.cardImage} />
-            <View style={styles.cardTitleContainer}>
-                <Text style={styles.cardTitle}>{item.name}</Text>
-            </View>
-        </View>
-    );
+function ContinentsScreen() {
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [continents, setContinents] = useState([]);
+
+    useEffect(() => {
+        async function fetchContinents() {
+            try {
+                const response = await fetch(PROXY_URL + WSDL_URL);
+                const text = await response.text();
+                console.log(text);
+
+                // parse the response and update the state
+                parseString(text, (err, result) => {
+                    if (err) {
+                        console.error(err);
+                        setError('An error occurred while parsing data');
+                        setLoading(false);
+                    } else {
+                        console.log(result);
+                        const continents = result['ArrayOftContinent']['tContinent'].map(
+                            (continent) => ({
+                                name: continent['sName'][0],
+                                code: continent['sCode'][0]
+                            })
+                        );
+                        setContinents(continents);
+                        setLoading(false);
+                    }
+                });
+            } catch (error) {
+                console.error(error);
+                setError('An error occurred while fetching data');
+                setLoading(false);
+            }
+        }
+
+        fetchContinents();
+    }, []);
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Continent Screen</Text>
-            <FlatList
-                data={continents}
-                renderItem={renderItem}
-                keyExtractor={(item) => item.id}
-                numColumns={2}
-                contentContainerStyle={styles.list}
-            />
+            <Text style={styles.title}>Continents</Text>
+            {loading ? (
+                <Text style={styles.loading}>Loading...</Text>
+            ) : error ? (
+                <Text style={styles.error}>{error}</Text>
+            ) : (
+                <ScrollView>
+                    {continents.map((continent) => (
+                        <Text key={continent.code} style={styles.continent}>
+                            {continent.name} ({continent.code})
+                        </Text>
+                    ))}
+                </ScrollView>
+            )}
         </View>
-    );
-}
-
+    );}
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -63,39 +73,20 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 24,
         fontWeight: 'bold',
-        marginBottom: 20,
+        marginVertical: 16,
     },
-    list: {
-        alignItems: 'center',
-        paddingVertical: 20,
-    },
-    card: {
-        margin: 10,
-        backgroundColor: '#fff',
-        borderRadius: 5,
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 1,
-        },
-        shadowOpacity: 0.2,
-        shadowRadius: 1.41,
-        elevation: 2,
-    },
-    cardImage: {
-        width: 150,
-        height: 150,
-        borderRadius: 5,
-    },
-    cardTitleContainer: {
-        backgroundColor: '#fff',
-        borderBottomLeftRadius: 5,
-        borderBottomRightRadius: 5,
-        padding: 10,
-        width: 150,
-    },
-    cardTitle: {
+    loading: {
         fontSize: 18,
-        fontWeight: 'bold',
+        color: '#999',
+    },
+    error: {
+        fontSize: 18,
+        color: '#f00',
+    },
+    continent: {
+        fontSize: 18,
+        marginVertical: 8,
     },
 });
+
+export default ContinentsScreen;

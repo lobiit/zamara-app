@@ -23,23 +23,23 @@ export default function Menu({ handleLogout, navigation }) {
         <View style={{ flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: 'black' }}>
             <Pressable onPress={() => setMenuOpen(!menuOpen)}>
                 <Image
-                    source={require('C:\\Users\\cyril\\zamara\\assets\\menu.png')}
+                    source={require('./menu.png')}
                     style={{ width: 30, height: 30 }}
                 />
             </Pressable>
             {menuOpen && (
-                <View style={{ position: 'absolute', top: 40, left: 0, borderWidth: 1, borderColor: 'black' }}>
+                <View style={{ position: 'absolute', top: 40, left: 0, borderWidth: 1, borderColor: 'black', backgroundColor: 'white' }}>
                     <Pressable onPress={() => navigateToScreen('Dashboard')}>
-                        <Text style={{ padding: 10 }}>Home</Text>
+                        <Text style={{ padding: 10, fontSize: 18 }}>Home</Text>
                     </Pressable>
                     <Pressable onPress={() => navigateToScreen('Staff')}>
-                        <Text style={{ padding: 10 }}>Staff</Text>
+                        <Text style={{ padding: 10, fontSize: 18 }}>Staff</Text>
                     </Pressable>
                     <Pressable onPress={() => navigateToScreen('Continents')}>
-                        <Text style={{ padding: 10 }}>Continents</Text>
+                        <Text style={{ padding: 10, fontSize: 18 }}>Continents</Text>
                     </Pressable>
                     <Pressable onPress={handleLogout}>
-                        <Text style={{ padding: 10 }}>Sign Out</Text>
+                        <Text style={{ padding: 10, fontSize: 18, fontWeight: 'bold', color: 'red' }}>Sign Out</Text>
                     </Pressable>
                 </View>
             )}

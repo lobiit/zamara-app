@@ -2,18 +2,19 @@ import React, { useState, useEffect } from 'react';
 import {View, Text, TextInput, Button, FlatList, StyleSheet, TouchableOpacity} from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import UpdateStaff from './updateStaff'
+import axios from "axios";
+import RNSmtpMailer from 'react-native-smtp-mailer';
 
 
 
-
-const BASE_URL = 'https://crudcrud.com/api/3e7828237b5d4c5b8fd6c4db3bca113a';
+const BASE_URL = 'https://crudcrud.com/api/7b5e23358b214920910dd8885dfd0ca8';
 
 export default function StaffScreen() {
     const [staffList, setStaffList] = useState([]);
     const navigation = useNavigation();
     const [staffNumber, setStaffNumber] = useState('');
     const [staffName, setStaffName] = useState('');
-    const [staffEmail, setStaffEmail] = useState('');
+    let [staffEmail, setStaffEmail] = useState('');
     const [department, setDepartment] = useState('');
     const [salary, setSalary] = useState('');
 
@@ -30,6 +31,25 @@ export default function StaffScreen() {
 
         fetchStaffList();
     }, []);
+    const axios = require('axios');
+
+    async function sendEmail(subject, body) {
+        try {
+            const response = await axios.post('http://localhost:3000/', {
+                to: staffEmail,
+                from: 'johnlobiit@gmail.com',
+                subject: subject,
+                html: body,
+            }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            console.log(response.data);
+        } catch (error) {
+            console.error(error);
+        }
+    }
 
     async function handleAddStaff() {
         try {
@@ -53,6 +73,7 @@ export default function StaffScreen() {
             setStaffEmail('');
             setDepartment('');
             setSalary('');
+            await sendEmail('Profile Notification #Created', `Greeting ${staffName}, we are glad to inform you that your staff profile has been created.`);
         } catch (error) {
             console.error(error);
         }
@@ -69,19 +90,29 @@ export default function StaffScreen() {
                 setStaffList((prevList) =>
                     prevList.map((s) => (s._id === data._id ? data : s))
                 );
+                // Send email after updating staff
+                staffEmail = updatedStaff.staffEmail;
+                sendEmail('Profile Notification #Edited', `Greeting ${updatedStaff.staffName}, we are glad to inform you that your staff profile has been updated.`);
             },
         });
     }
 
 
-    const handleDeleteStaff = (id) => {
-        // Filter out the staff member with the specified ID
-        const updatedStaffList = staffList.filter((staff) => staff._id !== id);
-
-        // Update the state with the new staff list
-        setStaffList(updatedStaffList);
+    const handleDeleteStaff = async (id) => {
+        const staffToDelete = staffList.find((s) => s._id === id);
+        try {
+            await fetch(`${BASE_URL}/zamara/${id}`, {
+                method: 'DELETE',
+            });
+            const updatedStaffList = staffList.filter((staff) => staff._id !== id);
+            setStaffList(updatedStaffList);
+            // Send email after deleting staff
+            staffEmail = staffToDelete.staffEmail;
+            await sendEmail('Profile Notification #Deleted', `Greeting ${staffToDelete.staffName}, we are sad to inform you that your staff profile has been deleted.`);
+        } catch (error) {
+            console.error(error);
+        }
     };
-
     return (
         <View>
             <View style={styles.formContainer}>
@@ -159,6 +190,16 @@ export default function StaffScreen() {
                         <Text style={styles.tableColumn}>{item?.department}</Text>
                         <Text style={styles.tableColumn}>{item?.salary}</Text>
                         <Button title="Update" onPress={() => handleUpdateStaff(item?._id)} />
+                        <Button
+                            title="Delete"
+                            onPress={() => handleDeleteStaff(item?._id)}
+                            color="red"
+                            style={styles.deleteButton}
+                            textStyle={styles.deleteButtonText}
+                        />
+
+
+
 
                     </View>
                 )}
@@ -168,6 +209,7 @@ export default function StaffScreen() {
     );
 
 }
+
 
 const styles = StyleSheet.create({
     formContainer: {
@@ -233,5 +275,14 @@ const styles = StyleSheet.create({
         flex: 1,
         textAlign: 'center',
     },
+    deleteButton: {
+        backgroundColor: 'red',
+        borderRadius: 5,
+        padding: 10,
+    },
+    deleteButtonText: {
+        color: 'white',
+        fontWeight: 'bold',
+        textAlign: 'center',
+    },
 });
-
